@@ -1212,7 +1212,7 @@ Return top 5 findings with source URLs.</code></pre></div>
                 if (this.dataset.gated) {
                     var savedEmail = getSavedEmail();
                     if (savedEmail) {
-                        loadGatedSection(savedEmail).then(function() { goTo(TOTAL); });
+                        loadGatedSection(savedEmail).then(function(ok) { if (ok) goTo(TOTAL); });
                     } else {
                         showEmailGate();
                     }
@@ -1230,7 +1230,7 @@ Return top 5 findings with source URLs.</code></pre></div>
             if (btn && btn.dataset.gateAction) {
                 var savedEmail = getSavedEmail();
                 if (savedEmail) {
-                    loadGatedSection(savedEmail).then(function() { goTo(TOTAL); });
+                    loadGatedSection(savedEmail).then(function(ok) { if (ok) goTo(TOTAL); });
                 } else { showEmailGate(); }
                 return;
             }
@@ -1293,9 +1293,8 @@ Return top 5 findings with source URLs.</code></pre></div>
 
         function loadGatedSection(email) {
             var placeholder = document.getElementById('section-' + TOTAL);
-            if (!placeholder) return Promise.resolve();
-            // If already loaded, just resolve
-            if (placeholder.innerHTML.trim()) return Promise.resolve();
+            if (!placeholder) return Promise.resolve(true);
+            if (placeholder.innerHTML.trim()) return Promise.resolve(true);
 
             return fetch('/api/checklist?email=' + encodeURIComponent(email))
                 .then(function(r) {
@@ -1308,13 +1307,14 @@ Return top 5 findings with source URLs.</code></pre></div>
                     localStorage.setItem('gate-email-' + COURSE_SLUG, email);
                     var lock = document.querySelector('.toc-lock');
                     if (lock) lock.remove();
+                    return true;
                 })
                 .catch(function() {
-                    // Email not found — clear saved email, show verify form
                     localStorage.removeItem('gate-email-' + COURSE_SLUG);
                     showEmailGate();
                     var msg = document.getElementById('gateError');
                     if (msg) { msg.style.display = 'block'; msg.textContent = 'Email not found. Please sign up first.'; }
+                    return false;
                 });
         }
 
@@ -1327,11 +1327,13 @@ Return top 5 findings with source URLs.</code></pre></div>
                 if (!email) return;
                 verifyBtn.textContent = 'Checking...';
                 verifyBtn.disabled = true;
-                loadGatedSection(email).then(function() {
-                    emailGate.classList.remove('visible');
-                    goTo(TOTAL);
+                loadGatedSection(email).then(function(ok) {
                     verifyBtn.textContent = 'Access Checklist';
                     verifyBtn.disabled = false;
+                    if (ok) {
+                        emailGate.classList.remove('visible');
+                        goTo(TOTAL);
+                    }
                 });
             });
             verifyEmail.addEventListener('keydown', function(e) {
