@@ -1094,8 +1094,21 @@ Return top 5 findings with source URLs.</code></pre></div>
     <!-- Email Gate Modal -->
     <div class="email-gate-overlay" id="emailGate">
         <div class="email-gate-modal">
-            <div id="flodeskFormContainer">
-                <div id="fd-form-69d6259bc420cb9799758009"></div>
+            <!-- Signup view (default for new users) -->
+            <div id="signupView">
+                <div id="flodeskFormContainer">
+                    <div id="fd-form-69d6259bc420cb9799758009"></div>
+                </div>
+                <button class="email-gate-skip" id="alreadySignedUp" style="margin-top:12px;background:none;border:none;color:var(--text-secondary);font-size:13px;cursor:pointer;font-family:var(--font-body);">Already signed up? Enter your email</button>
+            </div>
+            <!-- Verify view (for returning users) -->
+            <div id="verifyView" style="display:none;">
+                <h2 style="font-family:var(--font-display);font-size:24px;margin-bottom:8px;color:var(--text);">Welcome back</h2>
+                <p style="font-size:15px;color:var(--text-secondary);margin-bottom:24px;">Enter the email you signed up with to access the checklist.</p>
+                <p id="gateError" style="display:none;color:var(--coral);font-size:14px;margin-bottom:12px;"></p>
+                <input type="email" id="verifyEmail" placeholder="your@email.com" class="email-gate-input">
+                <button id="verifyBtn" class="email-gate-submit">Access Checklist</button>
+                <button id="showSignup" style="margin-top:12px;background:none;border:none;color:var(--text-secondary);font-size:13px;cursor:pointer;font-family:var(--font-body);">Need to sign up? Click here</button>
             </div>
             <button class="email-gate-skip" id="emailSkip">Skip for now</button>
         </div>
@@ -1109,7 +1122,6 @@ Return top 5 findings with source URLs.</code></pre></div>
         const TOTAL = 6;
         const EMAIL_GATE_ENABLED = true;
         const COURSE_SLUG = 'saving-tokens-claude-code';
-        const GATE_URL = '/api/checklist?token=fe860bdbe915a858d5c6093fbba3ad43e39f6045737789eb2e541334228888ba';
 
         // ===== State =====
         let current = 1;
@@ -1198,8 +1210,9 @@ Return top 5 findings with source URLs.</code></pre></div>
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 if (this.dataset.gated) {
-                    if (isChecklistUnlocked()) {
-                        loadGatedSection().then(function() { goTo(TOTAL); });
+                    var savedEmail = getSavedEmail();
+                    if (savedEmail) {
+                        loadGatedSection(savedEmail).then(function() { goTo(TOTAL); });
                     } else {
                         showEmailGate();
                     }
@@ -1215,8 +1228,9 @@ Return top 5 findings with source URLs.</code></pre></div>
             if (btn && !btn.disabled) { goTo(current - 1); return; }
             btn = e.target.closest('.nav-btn-next');
             if (btn && btn.dataset.gateAction) {
-                if (isChecklistUnlocked()) {
-                    loadGatedSection().then(function() { goTo(TOTAL); });
+                var savedEmail = getSavedEmail();
+                if (savedEmail) {
+                    loadGatedSection(savedEmail).then(function() { goTo(TOTAL); });
                 } else { showEmailGate(); }
                 return;
             }
@@ -1269,24 +1283,79 @@ Return top 5 findings with source URLs.</code></pre></div>
         });
 
         // ===== Email Gate =====
-        function isChecklistUnlocked() {
-            return localStorage.getItem('checklist-unlocked-' + COURSE_SLUG) === 'true';
+        function getSavedEmail() {
+            return localStorage.getItem('gate-email-' + COURSE_SLUG) || '';
         }
 
-        function loadGatedSection() {
-            var placeholder = document.getElementById('section-' + TOTAL);
-            if (!placeholder || placeholder.innerHTML.trim()) return Promise.resolve();
+        function isChecklistUnlocked() {
+            return !!getSavedEmail();
+        }
 
-            return fetch(GATE_URL)
-                .then(function(r) { return r.ok ? r.text() : Promise.reject(); })
+        function loadGatedSection(email) {
+            var placeholder = document.getElementById('section-' + TOTAL);
+            if (!placeholder) return Promise.resolve();
+            // If already loaded, just resolve
+            if (placeholder.innerHTML.trim()) return Promise.resolve();
+
+            return fetch('/api/checklist?email=' + encodeURIComponent(email))
+                .then(function(r) {
+                    if (!r.ok) throw new Error('not a subscriber');
+                    return r.text();
+                })
                 .then(function(html) {
                     placeholder.outerHTML = html;
-                    // Re-query sections since outerHTML replaced the DOM node
                     sections = document.querySelectorAll('.course-section');
-                    localStorage.setItem('checklist-unlocked-' + COURSE_SLUG, 'true');
+                    localStorage.setItem('gate-email-' + COURSE_SLUG, email);
                     var lock = document.querySelector('.toc-lock');
                     if (lock) lock.remove();
+                })
+                .catch(function() {
+                    // Email not found — clear saved email, show verify form
+                    localStorage.removeItem('gate-email-' + COURSE_SLUG);
+                    showEmailGate();
+                    var msg = document.getElementById('gateError');
+                    if (msg) { msg.style.display = 'block'; msg.textContent = 'Email not found. Please sign up first.'; }
                 });
+        }
+
+        // Verify form submit
+        var verifyBtn = document.getElementById('verifyBtn');
+        var verifyEmail = document.getElementById('verifyEmail');
+        if (verifyBtn) {
+            verifyBtn.addEventListener('click', function() {
+                var email = verifyEmail.value.trim();
+                if (!email) return;
+                verifyBtn.textContent = 'Checking...';
+                verifyBtn.disabled = true;
+                loadGatedSection(email).then(function() {
+                    emailGate.classList.remove('visible');
+                    goTo(TOTAL);
+                    verifyBtn.textContent = 'Access Checklist';
+                    verifyBtn.disabled = false;
+                });
+            });
+            verifyEmail.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') verifyBtn.click();
+            });
+        }
+
+        // Toggle between signup and verify forms
+        var alreadySignedUp = document.getElementById('alreadySignedUp');
+        var signupView = document.getElementById('signupView');
+        var verifyView = document.getElementById('verifyView');
+        var showSignupBtn = document.getElementById('showSignup');
+        if (alreadySignedUp) {
+            alreadySignedUp.addEventListener('click', function() {
+                signupView.style.display = 'none';
+                verifyView.style.display = 'block';
+                verifyEmail.focus();
+            });
+        }
+        if (showSignupBtn) {
+            showSignupBtn.addEventListener('click', function() {
+                verifyView.style.display = 'none';
+                signupView.style.display = 'block';
+            });
         }
 
         emailSkip.addEventListener('click', function() {
@@ -1351,11 +1420,15 @@ Return top 5 findings with source URLs.</code></pre></div>
             if (lock) lock.remove();
         }
 
-        // Handle Flodesk redirect: ?gate=unlocked → fetch section, inject, navigate
+        // Handle Flodesk redirect: ?gate=unlocked → show verify input
         var params = new URLSearchParams(window.location.search);
         if (params.get('gate') === 'unlocked' && EMAIL_GATE_ENABLED) {
             history.replaceState(null, '', window.location.pathname + '#section-' + TOTAL);
-            loadGatedSection().then(function() { goTo(TOTAL); });
+            // Show the modal in verify mode (they just signed up, need to enter email once)
+            showEmailGate();
+            if (signupView) signupView.style.display = 'none';
+            if (verifyView) verifyView.style.display = 'block';
+            if (verifyEmail) verifyEmail.focus();
         }
 
         // Parse hash on load

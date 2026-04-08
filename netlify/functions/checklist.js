@@ -1,18 +1,35 @@
-exports.handler = async (event) => {
-  const token = event.queryStringParameters && event.queryStringParameters.token;
-  const secret = process.env.GATE_SECRET;
+const https = require('https');
 
-  if (!token || !secret || token !== secret) {
-    return {
-      statusCode: 403,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "unauthorized" }),
+function checkSubscriber(email, apiKey) {
+  return new Promise((resolve) => {
+    const opts = {
+      hostname: 'api.flodesk.com',
+      path: '/v1/subscribers/' + encodeURIComponent(email),
+      method: 'GET',
+      headers: { 'Authorization': 'Basic ' + Buffer.from(apiKey + ':').toString('base64') },
     };
+    const req = https.request(opts, (res) => resolve(res.statusCode === 200));
+    req.on('error', () => resolve(false));
+    req.end();
+  });
+}
+
+exports.handler = async (event) => {
+  const email = event.queryStringParameters && event.queryStringParameters.email;
+  const apiKey = process.env.FLODESK_API_KEY;
+
+  if (!email || !apiKey) {
+    return { statusCode: 400, body: JSON.stringify({ error: "email required" }) };
+  }
+
+  const isSubscriber = await checkSubscriber(email, apiKey);
+  if (!isSubscriber) {
+    return { statusCode: 403, body: JSON.stringify({ error: "not a subscriber" }) };
   }
 
   return {
     statusCode: 200,
-    headers: { "Content-Type": "text/html; charset=utf-8", "Access-Control-Allow-Origin": "*" },
+    headers: { "Content-Type": "text/html; charset=utf-8" },
     body: `
     <article class="course-section" id="section-6">
         <img src="https://d2p7pge43lyniu.cloudfront.net/output/6c4a6af1-f9a7-4ffb-9d5a-f5dfc07a94fe.jpeg" alt="The Daily Workflow: Putting It All Together" class="section-hero">
