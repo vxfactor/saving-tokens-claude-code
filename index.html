@@ -754,7 +754,7 @@
     <!-- Top Nav -->
     <nav class="top-nav">
         <img src="https://res.cloudinary.com/drdkvqdzd/image/upload/v1772094064/silver_logo_transparent_vrvadv.png" alt="Silver AI Consulting" class="nav-logo">
-        <span class="nav-center" id="navCenter">Section 1 of 5</span>
+        <span class="nav-center" id="navCenter">Section 1 of 6</span>
         <div class="nav-actions">
             <button class="toc-toggle" id="tocToggle" aria-label="Table of contents">&#9776;</button>
             <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">&#9789;</button>
@@ -1106,7 +1106,7 @@ Return top 5 findings with source URLs.</code></pre></div>
         'use strict';
 
         // ===== Config =====
-        const TOTAL = 5;
+        const TOTAL = 6;
         const EMAIL_GATE_ENABLED = true;
         const COURSE_SLUG = 'saving-tokens-claude-code';
         const GATE_URL = '/api/checklist?token=fe860bdbe915a858d5c6093fbba3ad43e39f6045737789eb2e541334228888ba';
@@ -1199,7 +1199,7 @@ Return top 5 findings with source URLs.</code></pre></div>
                 e.preventDefault();
                 if (this.dataset.gated) {
                     if (isChecklistUnlocked()) {
-                        window.location.href = GATE_URL;
+                        loadGatedSection().then(function() { goTo(TOTAL); });
                     } else {
                         showEmailGate();
                     }
@@ -1215,8 +1215,9 @@ Return top 5 findings with source URLs.</code></pre></div>
             if (btn && !btn.disabled) { goTo(current - 1); return; }
             btn = e.target.closest('.nav-btn-next');
             if (btn && btn.dataset.gateAction) {
-                if (isChecklistUnlocked()) { window.location.href = GATE_URL; }
-                else { showEmailGate(); }
+                if (isChecklistUnlocked()) {
+                    loadGatedSection().then(function() { goTo(TOTAL); });
+                } else { showEmailGate(); }
                 return;
             }
             if (btn && !btn.disabled) { goTo(current + 1); return; }
@@ -1268,10 +1269,23 @@ Return top 5 findings with source URLs.</code></pre></div>
         });
 
         // ===== Email Gate =====
-        // The gated section is served by a Netlify Function — not in this page.
-        // localStorage remembers if user already signed up (set by the checklist page).
         function isChecklistUnlocked() {
             return localStorage.getItem('checklist-unlocked-' + COURSE_SLUG) === 'true';
+        }
+
+        function loadGatedSection() {
+            var placeholder = document.getElementById('section-' + TOTAL);
+            if (!placeholder || placeholder.innerHTML.trim()) return Promise.resolve();
+
+            return fetch(GATE_URL)
+                .then(function(r) { return r.ok ? r.text() : Promise.reject(); })
+                .then(function(html) {
+                    placeholder.outerHTML = html;
+                    localStorage.setItem('checklist-unlocked-' + COURSE_SLUG, 'true');
+                    // Update lock icon in sidebar
+                    var lock = document.querySelector('.toc-lock');
+                    if (lock) lock.remove();
+                });
         }
 
         emailSkip.addEventListener('click', function() {
@@ -1329,6 +1343,13 @@ Return top 5 findings with source URLs.</code></pre></div>
 
         // ===== Init =====
         initTheme();
+
+        // Handle Flodesk redirect: ?gate=unlocked → fetch section, inject, navigate
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('gate') === 'unlocked' && EMAIL_GATE_ENABLED) {
+            history.replaceState(null, '', window.location.pathname + '#section-' + TOTAL);
+            loadGatedSection().then(function() { goTo(TOTAL); });
+        }
 
         // Parse hash on load
         var hash = window.location.hash;
