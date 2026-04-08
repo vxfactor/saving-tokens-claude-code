@@ -1373,7 +1373,9 @@ model: haiku
             goTo(EMAIL_GATE_SECTION);
         }
 
-        emailSkip.addEventListener('click', unlock);
+        emailSkip.addEventListener('click', function() {
+            emailGate.classList.remove('visible');
+        });
 
         // ===== Share =====
         document.addEventListener('click', function(e) {
