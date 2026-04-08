@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saving Tokens with Claude Code — Silver AI Consulting</title>
+    <meta name="description" content="Real patterns from someone who runs Claude Code all day — not theory, not hacks. What actually works.">
+    <meta property="og:title" content="Saving Tokens with Claude Code">
+    <meta property="og:description" content="Real patterns from someone who runs Claude Code all day — not theory, not hacks. What actually works.">
+    <meta property="og:type" content="website">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>(function(w,d,t,h,s,n){w.FlodeskObject=n;var fn=function(){(w[n].q=w[n].q||[]).push(arguments)};w[n]=w[n]||fn;var f=d.getElementsByTagName(t)[0];var v='?v='+Math.floor(new Date().getTime()/(120*1000))*60;var sm=d.createElement(t);sm.async=true;sm.type='module';sm.src=h+s+'.mjs'+v;f.parentNode.insertBefore(sm,f);var sn=d.createElement(t);sn.async=true;sn.noModule=true;sn.src=h+s+'.js'+v;f.parentNode.insertBefore(sn,f)})(window,document,'script','https://assets.flodesk.com','/universal','fd');</script>
+    <style>
+        /* ===== CSS Variables (Brand Tokens) ===== */
+        :root {
+            --cream: #f5f1ee;
+            --espresso: #3d2b1f;
+            --coral: #f24b2e;
+            --gold: #c17817;
+            --white: #ffffff;
+            --muted: #8b7b6e;
+            --bg: var(--cream);
+            --text: var(--espresso);
+            --text-secondary: var(--muted);
+            --card-bg: var(--white);
+            --code-bg: #2d2017;
+            --code-text: #f0e6dc;
+            --border: rgba(61, 43, 31, 0.1);
+            --shadow: rgba(61, 43, 31, 0.08);
+            --font-display: 'Playfair Display', Georgia, serif;
+            --font-body: 'Inter', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --max-width: 720px;
+            --nav-height: 56px;
+            --transition: 0.3s ease;
+        }
+
+        [data-theme="dark"] {
+            --bg: #1a1714;
+            --text: #f0e6dc;
+            --text-secondary: #a89888;
+            --card-bg: #2a2420;
+            --code-bg: #1a1410;
+            --code-text: #f0e6dc;
+            --border: rgba(240, 230, 220, 0.1);
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        /* ===== Reset ===== */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* ===== Base ===== */
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-body);
+            font-size: 17px;
+            line-height: 1.7;
+            color: var(--text);
+            background: var(--bg);
+            transition: background var(--transition), color var(--transition);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===== Progress Bar ===== */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: var(--coral);
+            z-index: 1001;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ===== Top Nav ===== */
+        .top-nav {
+            position: fixed;
+            top: 3px;
+            left: 0;
+            right: 0;
+            height: var(--nav-height);
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 1000;
+            transition: background var(--transition);
+        }
+        .nav-logo {
+            height: 28px;
+            opacity: 0.85;
+        }
+        [data-theme="dark"] .nav-logo {
+            filter: brightness(10);
+        }
+        .nav-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: var(--font-body);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            letter-spacing: 0.02em;
+        }
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .theme-toggle {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all var(--transition);
+            color: var(--text);
+        }
+        .theme-toggle:hover {
+            border-color: var(--coral);
+            background: rgba(242, 75, 46, 0.05);
+        }
+        .toc-toggle {
+            display: none;
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--text);
+        }
+
+        /* ===== Sidebar ToC ===== */
+        .sidebar {
+            position: fixed;
+            top: calc(var(--nav-height) + 3px);
+            left: 0;
+            width: 280px;
+            height: calc(100vh - var(--nav-height) - 3px);
+            padding: 32px 24px;
+            overflow-y: auto;
+            border-right: 1px solid var(--border);
+            background: var(--bg);
+            z-index: 999;
+            transition: transform var(--transition), background var(--transition);
+        }
+        .sidebar-title {
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 20px;
+        }
+        .toc-list {
+            list-style: none;
+        }
+        .toc-item {
+            margin-bottom: 4px;
+        }
+        .toc-link {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.4;
+            transition: all var(--transition);
+            cursor: pointer;
+        }
+        .toc-link:hover {
+            background: rgba(242, 75, 46, 0.05);
+            color: var(--text);
+        }
+        .toc-link.active {
+            background: rgba(242, 75, 46, 0.08);
+            color: var(--coral);
+            font-weight: 500;
+        }
+        .toc-num {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--coral);
+            min-width: 20px;
+            padding-top: 1px;
+        }
+
+        /* ===== Main Content ===== */
+        .main-content {
+            margin-left: 280px;
+            padding-top: calc(var(--nav-height) + 3px);
+            min-height: 100vh;
+        }
+
+        /* ===== Section ===== */
+        .course-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .course-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== Hero Image ===== */
+        .section-hero {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+            background: var(--border);
+        }
+
+        /* ===== Section Content ===== */
+        .section-body {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 48px 32px 64px;
+        }
+        .section-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .section-type {
+            background: rgba(242, 75, 46, 0.08);
+            color: var(--coral);
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .section-reading-time {
+            font-weight: 400;
+        }
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 36px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 32px;
+            color: var(--text);
+        }
+
+        /* ===== Typography ===== */
+        .section-content h2 {
+            font-family: var(--font-display);
+            font-size: 24px;
+            font-weight: 600;
+            margin: 40px 0 16px;
+            color: var(--text);
+        }
+        .section-content h3 {
+            font-family: var(--font-body);
+            font-size: 18px;
+            font-weight: 600;
+            margin: 32px 0 12px;
+            color: var(--text);
+        }
+        .section-content p {
+            margin-bottom: 16px;
+        }
+        .section-content ul, .section-content ol {
+            margin-bottom: 16px;
+            padding-left: 24px;
+        }
+        .section-content li {
+            margin-bottom: 8px;
+        }
+        .section-content strong {
+            font-weight: 600;
+            color: var(--text);
+        }
+        .section-content a {
+            color: var(--coral);
+            text-decoration: underline;
+            text-decoration-color: rgba(242, 75, 46, 0.3);
+            text-underline-offset: 2px;
+            transition: text-decoration-color var(--transition);
+        }
+        .section-content a:hover {
+            text-decoration-color: var(--coral);
+        }
+
+        /* ===== Code Blocks ===== */
+        .code-block-wrapper {
+            position: relative;
+            margin: 24px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            background: var(--code-bg);
+        }
+        .code-block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.2);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--muted);
+        }
+        .copy-btn {
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--muted);
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: var(--font-body);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .copy-btn:hover {
+            border-color: var(--coral);
+            color: var(--coral);
+        }
+        .copy-btn.copied {
+            border-color: #4caf50;
+            color: #4caf50;
+        }
+        pre {
+            margin: 0;
+            padding: 20px;
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--code-text);
+        }
+        code {
+            font-family: var(--font-mono);
+            font-size: 0.9em;
+        }
+        p code, li code {
+            background: rgba(242, 75, 46, 0.08);
+            color: var(--coral);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+
+        /* ===== Prompt Blocks ===== */
+        .prompt-block {
+            position: relative;
+            margin: 24px 0;
+            padding: 20px 24px;
+            background: rgba(193, 120, 23, 0.06);
+            border-left: 4px solid var(--gold);
+            border-radius: 0 8px 8px 0;
+        }
+        .prompt-block-label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--gold);
+            margin-bottom: 8px;
+        }
+        .prompt-block-content {
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        .prompt-block .copy-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+        }
+
+        /* ===== Callout Blocks ===== */
+        .callout {
+            margin: 24px 0;
+            padding: 16px 20px;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+        .callout-tip {
+            background: rgba(193, 120, 23, 0.06);
+            border: 1px solid rgba(193, 120, 23, 0.15);
+        }
+        .callout-tip::before {
+            content: "Tip";
+            display: block;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--gold);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .callout-warning {
+            background: rgba(242, 75, 46, 0.05);
+            border: 1px solid rgba(242, 75, 46, 0.15);
+        }
+        .callout-warning::before {
+            content: "Warning";
+            display: block;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--coral);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        /* ===== Tables ===== */
+        .table-wrapper {
+            margin: 24px 0;
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 15px;
+        }
+        thead {
+            background: rgba(61, 43, 31, 0.04);
+        }
+        [data-theme="dark"] thead {
+            background: rgba(240, 230, 220, 0.04);
+        }
+        th {
+            text-align: left;
+            padding: 12px 16px;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            line-height: 1.5;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        tbody tr:hover {
+            background: rgba(242, 75, 46, 0.03);
+        }
+
+        /* ===== Checklist ===== */
+        .checklist {
+            list-style: none;
+            padding-left: 0;
+        }
+        .checklist li {
+            position: relative;
+            padding-left: 32px;
+            margin-bottom: 12px;
+        }
+        .checklist li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 4px;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--coral);
+            border-radius: 4px;
+        }
+        .checklist li.checked::before {
+            background: var(--coral);
+        }
+        .checklist li.checked::after {
+            content: "";
+            position: absolute;
+            left: 4px;
+            top: 7px;
+            width: 10px;
+            height: 6px;
+            border-left: 2px solid var(--white);
+            border-bottom: 2px solid var(--white);
+            transform: rotate(-45deg);
+        }
+
+        /* ===== Bottom Nav ===== */
+        .bottom-nav {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 32px 48px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--card-bg);
+            color: var(--text);
+            font-family: var(--font-body);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition);
+            text-decoration: none;
+        }
+        .nav-btn:hover {
+            border-color: var(--coral);
+            color: var(--coral);
+        }
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .nav-btn:disabled:hover {
+            border-color: var(--border);
+            color: var(--text);
+        }
+        .nav-btn-next {
+            background: var(--coral);
+            color: var(--white);
+            border-color: var(--coral);
+        }
+        .nav-btn-next:hover {
+            background: #d93d22;
+            color: var(--white);
+        }
+        .nav-indicator {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        /* ===== Share Buttons ===== */
+        .share-bar {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 32px 48px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .share-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .share-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: none;
+            color: var(--text-secondary);
+            font-family: var(--font-body);
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all var(--transition);
+        }
+        .share-btn:hover {
+            border-color: var(--coral);
+            color: var(--coral);
+        }
+
+        /* ===== Footer ===== */
+        .course-footer {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 32px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .footer-logo {
+            height: 24px;
+            opacity: 0.7;
+        }
+        [data-theme="dark"] .footer-logo {
+            filter: brightness(10);
+        }
+        .footer-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .footer-cta {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 10px 24px;
+            background: var(--coral);
+            color: var(--white);
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            text-decoration: none;
+            transition: background var(--transition);
+        }
+        .footer-cta:hover {
+            background: #d93d22;
+        }
+
+        /* ===== Email Gate Modal ===== */
+        .email-gate-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(26, 23, 20, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .email-gate-overlay.visible {
+            display: flex;
+        }
+        .email-gate-modal {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 48px 40px;
+            max-width: 440px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 24px 48px var(--shadow);
+        }
+        .email-gate-modal h2 {
+            font-family: var(--font-display);
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+        .email-gate-modal p {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+        .email-gate-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: var(--font-body);
+            font-size: 15px;
+            background: var(--bg);
+            color: var(--text);
+            margin-bottom: 12px;
+            outline: none;
+            transition: border-color var(--transition);
+        }
+        .email-gate-input:focus {
+            border-color: var(--coral);
+        }
+        .email-gate-submit {
+            width: 100%;
+            padding: 12px;
+            background: var(--coral);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            font-family: var(--font-body);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background var(--transition);
+        }
+        .email-gate-submit:hover {
+            background: #d93d22;
+        }
+        .email-gate-skip {
+            display: block;
+            margin-top: 12px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            font-family: var(--font-body);
+        }
+        .email-gate-skip:hover {
+            color: var(--text);
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 960px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+                box-shadow: 4px 0 24px var(--shadow);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .toc-toggle {
+                display: flex;
+            }
+            .nav-center {
+                display: none;
+            }
+        }
+        @media (max-width: 600px) {
+            body { font-size: 16px; }
+            .section-body { padding: 32px 20px 48px; }
+            .section-title { font-size: 28px; }
+            .section-content h2 { font-size: 20px; }
+            .bottom-nav { padding: 0 20px 32px; }
+            .share-bar { padding: 0 20px 32px; }
+            .course-footer { padding: 24px 20px; }
+            .nav-btn { padding: 10px 16px; font-size: 13px; }
+            .email-gate-modal { padding: 32px 24px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Top Nav -->
+    <nav class="top-nav">
+        <img src="https://res.cloudinary.com/drdkvqdzd/image/upload/v1772094064/silver_logo_transparent_vrvadv.png" alt="Silver AI Consulting" class="nav-logo">
+        <span class="nav-center" id="navCenter">Section 1 of 6</span>
+        <div class="nav-actions">
+            <button class="toc-toggle" id="tocToggle" aria-label="Table of contents">&#9776;</button>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">&#9789;</button>
+        </div>
+    </nav>
+
+    <!-- Sidebar ToC -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-title">Contents</div>
+        <ul class="toc-list" id="tocList">
+            <li class="toc-item"><a class="toc-link" data-section="1"><span class="toc-num">01</span>How Tokens Actually Work (And Why You're Bleeding Them)</a></li>
+<li class="toc-item"><a class="toc-link" data-section="2"><span class="toc-num">02</span>CLAUDE.md: The File That Saves You Thousands of Tokens Per Session</a></li>
+<li class="toc-item"><a class="toc-link" data-section="3"><span class="toc-num">03</span>Model Tiering: Stop Using Opus for Everything</a></li>
+<li class="toc-item"><a class="toc-link" data-section="4"><span class="toc-num">04</span>Subagents and Parallel Execution</a></li>
+<li class="toc-item"><a class="toc-link" data-section="5"><span class="toc-num">05</span>When NOT to Optimize (The Counter-Intuitive Section)</a></li>
+<li class="toc-item"><a class="toc-link" data-section="6"><span class="toc-num">06</span>The Daily Workflow: Putting It All Together</a></li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        
+    <article class="course-section" id="section-1">
+        <img src="https://d2p7pge43lyniu.cloudfront.net/output/e738f7f2-e25d-4f6a-8383-67ca2841a12e.jpeg" alt="How Tokens Actually Work (And Why You're Bleeding Them)" class="section-hero">
+        <div class="section-body">
+            <div class="section-meta">
+                <span class="section-type">concept</span>
+                <span class="section-reading-time">4 min</span>
+            </div>
+            <h1 class="section-title">How Tokens Actually Work (And Why You're Bleeding Them)</h1>
+            <div class="section-content">
+                <p>Most people think of Claude Code's context window like a hard drive. You put stuff in, it stays there, and you use it when you need it.</p>
+<p>Wrong mental model. The context window is <strong>active working memory</strong> — more like a whiteboard than a filing cabinet. Everything on it gets processed every single turn. Every file Claude reads, every tool call result, every response it generates — all of it stays on the whiteboard and gets re-read on the next turn.</p>
+<p>This is why your sessions slow down and quality degrades. It's not that Claude "forgets." It's that the whiteboard is so full of old notes that it can't focus on what matters right now.</p>
+<h2>Where Your Tokens Actually Go</h2>
+<p>Here's what most people don't realize about token consumption:</p>
+<ul><li><strong>Input tokens</strong> are charged every turn for the entire conversation history. Turn 1 costs X. Turn 20 costs 20X, because Claude re-reads everything.</li><li><strong>Tool call results</strong> are often the biggest culprits. A single file read can dump 2,000+ lines into context. That stays there for every subsequent turn.</li><li><strong>Claude's own responses</strong> also count. A verbose response on turn 3 inflates every turn after it.</li><li><strong>CLAUDE.md and rules files</strong> are loaded once at the start — but they're in context for the entire session.</li></ul>
+<p>The practical consequence: a 50-turn session doesn't cost 50x a single turn. It costs roughly **50 * (average context size)**, which grows with every turn.</p>
+<h2>The Four Failure Modes</h2>
+<p>When context gets bloated, you'll see these symptoms in order:</p>
+<ol><li><strong>Inconsistent code</strong> — Claude contradicts decisions from earlier in the session</li><li><strong>Repeated questions</strong> — it asks about project structure you already explained</li><li><strong>Lost conventions</strong> — naming patterns and architectural decisions disappear</li><li><strong>Breaking changes</strong> — it ignores patterns established minutes ago</li></ol>
+<p>If you've hit any of these, you weren't doing anything wrong. Your context window was just full.</p>
+<h2>The 80% Rule</h2>
+<p>Watch the token percentage in Claude Code's status bar. When you hit ~80%, you have two options:</p>
+<ol><li>Run <code>/compact</code> to compress the conversation history</li><li>Exit and start a fresh session for complex multi-file work</li></ol>
+<div class="callout callout-tip">Don't wait until quality degrades to act. By the time you notice bad output, you've already wasted tokens on responses you'll need to redo. Check the status bar proactively.</div>
+<p>The rest of this course is about <strong>never hitting 80% in the first place</strong> — or at least, not hitting it until you've gotten 3-5x more useful work done per session.</p>
+            </div>
+        </div>
+        <div class="bottom-nav">
+            <button class="nav-btn nav-btn-prev" disabled>&#8592; Previous</button>
+            <span class="nav-indicator">Section 1 of 6</span>
+            <button class="nav-btn nav-btn-next">Next &#8594;</button>
+        </div>
+        <div class="share-bar">
+            <span class="share-label">Share this section:</span>
+            <a class="share-btn" data-platform="linkedin">LinkedIn</a>
+            <a class="share-btn" data-platform="x">X / Twitter</a>
+            <a class="share-btn" data-platform="copy">Copy link</a>
+        </div>
+        <footer class="course-footer">
+            <div class="footer-brand">
+                <img src="https://res.cloudinary.com/drdkvqdzd/image/upload/v1772094064/silver_logo_transparent_vrvadv.png" alt="Silver AI Consulting" class="footer-logo">
+                <span class="footer-text">Silver AI Consulting</span>
+            </div>
+            <a href="https://tidycal.com/nicsilver/intro-call" class="footer-cta" target="_blank">Book an Introductory Call</a>
+        </footer>
+    </article>
+
+    <article class="course-section" id="section-2">
+        <img src="https://d2p7pge43lyniu.cloudfront.net/output/e3552358-26f3-4c22-94f4-36e11518849c.jpeg" alt="CLAUDE.md: The File That Saves You Thousands of Tokens Per Session" class="section-hero">
+        <div class="section-body">
+            <div class="section-meta">
+                <span class="section-type">actionable</span>
+                <span class="section-reading-time">5 min</span>
+            </div>
+            <h1 class="section-title">CLAUDE.md: The File That Saves You Thousands of Tokens Per Session</h1>
+            <div class="section-content">
+                <p>Every time you start a new Claude Code session and explain your project setup, your coding preferences, your API configurations, your deployment patterns — that's tokens you're burning on re-explanation.</p>
+<p>CLAUDE.md is the fix. It's a markdown file at your project root that Claude reads automatically at the start of every session. Think of it as persistent memory between conversations.</p>
+<p>But most people's CLAUDE.md files are either empty or filled with vague instructions like "write clean code." Here's how to make yours actually save tokens.</p>
+<h2>The Structure That Works</h2>
+<div class="code-block-wrapper"><div class="code-block-header"><span>markdown</span><button class="copy-btn">Copy</button></div><pre><code># Project Name
+
+One-line description of what this project does.
+
+## Tech Stack
+- Language, framework, key dependencies
+- Database, hosting, CI/CD
+
+## Key Paths
+| Path | Purpose |
+|------|------|
+| src/api/ | API routes |
+| src/models/ | Database models |
+| .env | API keys (never commit) |
+
+## Capabilities
+*Living log. After meaningful work, append what worked.*
+- Deploy script handles zero-downtime via blue-green swap
+- Image pipeline uses Wavespeed API, not local generation
+
+## What Not To Do
+*Living log. After failures, append what went wrong.*
+- Don't use the v1 endpoint — deprecated, returns 500s
+- Don't mock the database in integration tests
+- Airtable image URLs expire — use thumbnails.full.url</code></pre></div>
+<h2>The Two Sections That Save the Most Tokens</h2>
+<p><strong>Capabilities</strong> and <strong>What Not To Do</strong> are living logs. After every meaningful session, you append one line about what worked or what failed.</p>
+<p>Over time, these compound. Instead of Claude rediscovering that "the v1 API endpoint is broken" (costing you 10 minutes and hundreds of tokens in failed attempts), it reads it in CLAUDE.md on session start and skips straight to the working approach.</p>
+<div class="prompt-block"><div class="prompt-block-label">Prompt</div><button class="copy-btn">Copy</button><div class="prompt-block-content">After completing a task, add to CLAUDE.md: "Append what worked to Capabilities, what failed to What Not To Do. One line each."</div></div>
+<h2>Hardcode Known Values</h2>
+<p>This is the single highest-ROI trick I use. If there's a value Claude looks up every time — an API ID, a config setting, a deployment URL — hardcode it in your CLAUDE.md or skill docs.</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span>markdown</span><button class="copy-btn">Copy</button></div><pre><code>## Constants
+- Typefully social set ID: 288354
+- Airtable content base: appXXXXXXXX
+- Deploy target: production-east-1
+- CTA link: https://tidycal.com/nicsilver/intro-call</code></pre></div>
+<p>Every hardcoded value eliminates a lookup. A lookup means a tool call, which means tokens for the request and the response, which stays in context for the rest of the session. One hardcoded line saves 200+ tokens per session.</p>
+<h2>Rules Files: Auto-Loading Behavior</h2>
+<p>CLAUDE.md isn't the only file Claude reads automatically. Files in <code>.claude/rules/</code> are loaded every session too. Use these for cross-cutting standards:</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span>text</span><button class="copy-btn">Copy</button></div><pre><code>.claude/rules/
+  code-style.md    → &quot;Use snake_case, keep functions under 20 lines&quot;
+  testing.md       → &quot;Integration tests hit real DB, unit tests mock external APIs only&quot;
+  git.md           → &quot;Conventional commits, never force-push main&quot;</code></pre></div>
+<p>The key insight: <strong>rules files replace repeated instructions.</strong> If you find yourself typing the same guidance across sessions, it belongs in a rules file. Write it once, never explain it again.</p>
+<div class="callout callout-tip">Keep your CLAUDE.md under 200 lines. Dense, not comprehensive. If it gets too long, you're putting context-window pressure on every session. Move reference material to separate files that Claude reads on demand.</div>
+            </div>
+        </div>
+        <div class="bottom-nav">
+            <button class="nav-btn nav-btn-prev" >&#8592; Previous</button>
+            <span class="nav-indicator">Section 2 of 6</span>
+            <button class="nav-btn nav-btn-next">Next &#8594;</button>
+        </div>
+        <div class="share-bar">
+            <span class="share-label">Share this section:</span>
+            <a class="share-btn" data-platform="linkedin">LinkedIn</a>
+            <a class="share-btn" data-platform="x">X / Twitter</a>
+            <a class="share-btn" data-platform="copy">Copy link</a>
+        </div>
+        <footer class="course-footer">
+            <div class="footer-brand">
+                <img src="https://res.cloudinary.com/drdkvqdzd/image/upload/v1772094064/silver_logo_transparent_vrvadv.png" alt="Silver AI Consulting" class="footer-logo">
+                <span class="footer-text">Silver AI Consulting</span>
+            </div>
+            <a href="https://tidycal.com/nicsilver/intro-call" class="footer-cta" target="_blank">Book an Introductory Call</a>
+        </footer>
+    </article>
+
+    <article class="course-section" id="section-3">
+        <img src="https://d2p7pge43lyniu.cloudfront.net/output/08fd47ec-e2dc-4ea9-8fa3-a3510f653e2b.jpeg" alt="Model Tiering: Stop Using Opus for Everything" class="section-hero">
+        <div class="section-body">
+            <div class="section-meta">
+                <span class="section-type">actionable</span>
+                <span class="section-reading-time">4 min</span>
+            </div>
+            <h1 class="section-title">Model Tiering: Stop Using Opus for Everything</h1>
+            <div class="section-content">
+                <p>If you're running Opus for every task, you're using a sledgehammer to hang picture frames. Opus is the most capable model, but it's also the most expensive in tokens-per-turn. For tasks that don't need its full reasoning power, you're burning tokens for nothing.</p>
+<p>Model tiering means matching the model to the task complexity. Claude Code makes this easy — you can set model overrides per skill, per subagent, or per session.</p>
+<h2>The Three Tiers</h2>
+<div class="table-wrapper"><table><thead><tr><th>Tier</th><th>Model</th><th>Use When</th><th>Token Cost</th></tr></thead><tbody><tr><td><strong>Research & Breadth</strong></td><td>Sonnet</td><td>Searching code, reading files, exploring options, gathering data</td><td>Low</td></tr><tr><td><strong>Synthesis & Judgment</strong></td><td>Opus</td><td>Final output, complex reasoning, architectural decisions, merging research</td><td>High</td></tr><tr><td><strong>Classification & Lookups</strong></td><td>Haiku</td><td>Yes/no decisions, categorization, simple extraction, filtering</td><td>Very Low</td></tr></tbody></table></div>
+<h2>Concrete Examples</h2>
+<p><strong>Use Sonnet for:</strong></p>
+<ul><li>Scanning a codebase for all files matching a pattern</li><li>Reading and summarizing documentation</li><li>First-pass research across multiple sources</li><li>Generating multiple draft options (where you'll pick the best one anyway)</li><li>Running exploration subagents that fan out across the codebase</li></ul>
+<p><strong>Use Opus for:</strong></p>
+<ul><li>Writing the final implementation after research is done</li><li>Making architectural trade-off decisions</li><li>Synthesizing findings from multiple Sonnet agents into a coherent plan</li><li>Complex refactoring where correctness matters more than speed</li><li>The main conversation thread where you're orchestrating work</li></ul>
+<p><strong>Use Haiku for:</strong></p>
+<ul><li>Filtering a list of items by relevance ("is this file related to authentication?")</li><li>Simple data extraction ("pull the email from this JSON")</li><li>Pre-screening before handing to a more expensive model</li><li>Classification tasks ("is this a bug report or a feature request?")</li></ul>
+<h2>How to Set It</h2>
+<p>In skill definitions (<code>.claude/skills/<name>/SKILL.md</code>):</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span>yaml</span><button class="copy-btn">Copy</button></div><pre><code>---
+model: sonnet  # This skill runs on Sonnet
+---</code></pre></div>
+<p>In subagent definitions (<code>.claude/agents/<name>.md</code>):</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span>yaml</span><button class="copy-btn">Copy</button></div><pre><code>---
+model: haiku   # This agent runs on Haiku
+---</code></pre></div>
+<p>When spawning agents inline:</p>
+<div class="prompt-block"><div class="prompt-block-label">Prompt</div><button class="copy-btn">Copy</button><div class="prompt-block-content">"Use Sonnet subagents for the research phase, then synthesize with Opus in the main thread."</div></div>
+<h2>The Fan-Out Pattern</h2>
+<p>The most token-efficient pattern I use daily:</p>
+<ol><li><strong>Fan out</strong> 3-5 Sonnet agents in parallel, each researching one angle</li><li><strong>Collect</strong> their findings (they report back concisely)</li><li><strong>Synthesize</strong> in the main Opus thread — one turn of high-quality reasoning</li></ol>
+<p>Instead of Opus doing 15 turns of research + synthesis, you get Sonnet doing 15 turns of cheap research + Opus doing 1 turn of expensive synthesis. The total token cost drops dramatically, and the output quality is often better because each agent has a focused, clean context.</p>
+<div class="callout callout-tip">Don't overthink tier selection. When in doubt, start with Sonnet. If the output quality isn't good enough, bump to Opus. You'll quickly develop intuition for which tasks need which tier.</div>
+            </div>
+        </div>
+        <div class="bottom-nav">
+            <button class="nav-btn nav-btn-prev" >&#8592; Previous</button>
+            <span class="nav-indicator">Section 3 of 6</span>
+            <button class="nav-btn nav-btn-next">Next &#8594;</button>
+        </div>
+        <div class="share-bar">
+            <span class="share-label">Share this section:</span>
+            <a class="share-btn" data-platform="linkedin">LinkedIn</a>
+            <a class="share-btn" data-platform="x">X / Twitter</a>
+            <a class="share-btn" data-platform="copy">Copy link</a>
+        </div>
+        <footer class="course-footer">
+            <div class="footer-brand">
+                <img src="https://res.cloudinary.com/drdkvqdzd/image/upload/v1772094064/silver_logo_transparent_vrvadv.png" alt="Silver AI Consulting" class="footer-logo">
+                <span class="footer-text">Silver AI Consulting</span>
+            </div>
+            <a href="https://tidycal.com/nicsilver/intro-call" class="footer-cta" target="_blank">Book an Introductory Call</a>
+        </footer>
+    </article>
+
+    <article class="course-section" id="section-4">
+        <img src="https://d2p7pge43lyniu.cloudfront.net/output/c8dfd1c0-37c9-4f23-94e7-4fedb4aefd51.jpeg" alt="Subagents and Parallel Execution" class="section-hero">
+        <div class="section-body">
+            <div class="section-meta">
+                <span class="section-type">code</span>
+                <span class="section-reading-time">5 min</span>
+            </div>
+            <h1 class="section-title">Subagents and Parallel Execution</h1>
+            <div class="section-content">
+                <p>Subagents are the most powerful token-saving mechanism in Claude Code — and the most underused. Every subagent runs in its own isolated context window. That means it only sees what you explicitly pass to it, not your entire 50-turn conversation history.</p>
+<h2>context: fork — The Key Setting</h2>
+<p>When you define a skill or agent with <code>context: fork</code>, it runs in a completely isolated context. It doesn't inherit your conversation history. It gets a clean slate with just the instructions you give it.</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span>yaml</span><button class="copy-btn">Copy</button></div><pre><code>---
+name: research-agent
+description: Researches a topic across the codebase
+model: sonnet
+context: fork
+---
+
+You are a research agent. Given a topic, search the codebase
+for all relevant files and return a summary.
+
+Input: $ARGUMENTS</code></pre></div>
+<p>Without <code>context: fork</code>, the subagent inherits your full conversation — which might be 100K tokens of unrelated context. With it, the subagent starts with maybe 2K tokens of instructions. That's a 50x reduction in input tokens per turn.</p>
+<h2>Scripts Do the Work, Claude Orchestrates</h2>
+<p>This is the pattern that saves the most tokens in my daily workflow: <strong>don't use Claude for deterministic work.</strong></p>
+<p>If a task has a predictable input/output — an API call, a data transformation, a file format conversion — write a Python script for it. Claude's job is to decide *when* to run the script and *what* to do with the results.</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span>text</span><button class="copy-btn">Copy</button></div><pre><code># Bad: Claude makes the API call (tokens for request + response + reasoning)
+&quot;Call the Airtable API to get all records from the content table,
+ filter by status=draft, and return the titles.&quot;
+
+# Good: Script makes the call, Claude gets just the result
+python3 scripts/get_drafts.py --status draft --fields title</code></pre></div>
+<p>The script approach has three benefits:</p>
+<ol><li><strong>Fewer tokens</strong> — Claude sees a 5-line result instead of reasoning through API docs</li><li><strong>Deterministic</strong> — the script works the same way every time, no prompt variance</li><li><strong>Reusable</strong> — the script runs without Claude, useful for cron jobs and CI</li></ol>
+<h2>Parallel Agent Pattern</h2>
+<p>Instead of one agent doing 5 tasks sequentially (each task adding to the context), spawn 5 agents that each do 1 task in parallel:</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span>yaml</span><button class="copy-btn">Copy</button></div><pre><code># .claude/agents/wiki-scanner.md
+---
+name: wiki-scanner
+model: sonnet
+context: fork
+---
+Scan the wiki index for pages related to: $ARGUMENTS
+Return a bullet list of relevant page paths and one-line summaries.</code></pre></div>
+<div class="code-block-wrapper"><div class="code-block-header"><span>yaml</span><button class="copy-btn">Copy</button></div><pre><code># .claude/agents/trend-scanner.md
+---
+name: trend-scanner
+model: sonnet
+context: fork
+---
+Search for trending content on the given topic.
+Return top 5 findings with source URLs.</code></pre></div>
+<p>Then in your main skill:</p>
+<div class="prompt-block"><div class="prompt-block-label">Prompt</div><button class="copy-btn">Copy</button><div class="prompt-block-content">Fan out 3 parallel sonnet agents in a single message: wiki-scanner, trend-scanner, and content-inventory. Each searches independently. Synthesize their results in the main thread.</div></div>
+<p>Each agent runs with a tiny context window (~5K tokens). The main thread receives three concise summaries instead of accumulating 50K tokens of sequential exploration.</p>
+<h2>The Practical Difference</h2>
+<div class="table-wrapper"><table><thead><tr><th>Approach</th><th>Context per turn</th><th>Total tokens (10 tasks)</th></tr></thead><tbody><tr><td>One agent, sequential</td><td>Grows: 10K → 50K → 100K</td><td>~500K+</td></tr><tr><td>Parallel agents, forked</td><td>Fixed: ~5K each</td><td>~50K total</td></tr><tr><td>Scripts + orchestration</td><td>Fixed: ~2K per script result</td><td>~20K total</td></tr></tbody></table></div>
+<p>That's not a marginal improvement. That's the difference between hitting your limit at lunch and making it through the full day.</p>
+<div class="callout callout-warning">Subagents can't spawn other subagents. If you need chained delegation, chain from the main conversation thread. Plan your agent hierarchy before you start.</div>
+            </div>
+        </div>
+        <div class="bottom-nav">
+            <button class="nav-btn nav-btn-prev" >&#8592; Previous</button>
+            <span class="nav-indicator">Section 4 of 6</span>
+            <button class="nav-btn nav-btn-next">Next &#8594;</button>
+        </div>
+        <div class="share-bar">
+            <span class="share-label">Share this section:</span>
+            <a class="share-btn" data-platform="linkedin">LinkedIn</a>
+            <a class="share-btn" data-platform="x">X / Twitter</a>
+            <a class="share-btn" data-platform="copy">Copy link</a>
+        </div>
+        <footer class="course-footer">
+            <div class="footer-brand">
+                <img src="https://res.cloudinary.com/drdkvqdzd/image/upload/v1772094064/silver_logo_transparent_vrvadv.png" alt="Silver AI Consulting" class="footer-logo">
+                <span class="footer-text">Silver AI Consulting</span>
+            </div>
+            <a href="https://tidycal.com/nicsilver/intro-call" class="footer-cta" target="_blank">Book an Introductory Call</a>
+        </footer>
+    </article>
+
+    <article class="course-section" id="section-5">
+        <img src="https://d2p7pge43lyniu.cloudfront.net/output/cafd6648-9caa-4f9a-a176-8a81710f5b54.jpeg" alt="When NOT to Optimize (The Counter-Intuitive Section)" class="section-hero">
+        <div class="section-body">
+            <div class="section-meta">
+                <span class="section-type">concept</span>
+                <span class="section-reading-time">4 min</span>
+            </div>
+            <h1 class="section-title">When NOT to Optimize (The Counter-Intuitive Section)</h1>
+            <div class="section-content">
+                <p>Everything in the previous sections can make your token usage dramatically more efficient. But there's a trap: <strong>premature token optimization kills flow and can actually cost you more.</strong></p>
+<p>I learned this the hard way. I spent a week over-constraining my CLAUDE.md, limiting tool access, forcing minimal responses. The result? Claude produced worse output that needed redoing. Every redo cost more tokens than the original "wasteful" approach would have.</p>
+<h2>When Spending More Tokens Saves Tokens</h2>
+<p><strong>Exploration phases.</strong> When you don't know what you're looking for, let Claude explore. Restricting file reads and searches to "save tokens" means Claude guesses instead of looking. Guesses lead to wrong approaches. Wrong approaches lead to debugging sessions that burn 10x more tokens than the exploration would have.</p>
+<p><strong>Complex reasoning.</strong> Sometimes you need Opus to think through a problem in a long, detailed response. Forcing terse responses on complex architectural decisions leads to shallow thinking, which leads to flawed implementations, which leads to costly rewrites.</p>
+<p><strong>First drafts.</strong> Don't optimize your prompts to death before seeing what Claude produces. A slightly wasteful first attempt that works is infinitely cheaper than a perfectly optimized prompt that produces the wrong thing.</p>
+<h2>The Real Cost Equation</h2>
+<p>The cost of a Claude Code session isn't just tokens consumed. It's:</p>
+<p><strong>Total cost = tokens consumed + (tokens wasted on bad output that needs redoing) + (your time spent re-prompting)</strong></p>
+<p>A session that uses 200K tokens and produces the right result on the first try is cheaper than a session that uses 80K tokens but needs three attempts because you over-constrained it.</p>
+<h2>Five Signs You're Over-Optimizing</h2>
+<ol><li><strong>You're writing longer prompts to save tokens.</strong> If your instructions about how to be efficient are themselves consuming significant tokens, you've gone too far.</li><li><strong>Claude keeps asking clarifying questions.</strong> You removed too much context. Now it's burning tokens on back-and-forth instead.</li><li><strong>Output quality dropped.</strong> Terse CLAUDE.md instructions produce terse, shallow output. Dense doesn't mean cryptic.</li><li><strong>You're spending more time managing Claude than using it.</strong> If you're micro-managing model selection and context for every minor task, the management overhead exceeds the savings.</li><li><strong>You're avoiding useful tools.</strong> Skipping file reads or web searches to "save tokens" means Claude works with incomplete information.</li></ol>
+<h2>The Rules I Follow</h2>
+<ul><li><strong>Optimize systems, not individual prompts.</strong> CLAUDE.md, rules files, skills, and subagent architecture are system-level optimizations. They compound. Micro-optimizing a single prompt is a one-time saving that rarely compounds.</li><li><strong>Let exploration be expensive.</strong> Research and discovery phases should be unconstrained. Optimization belongs in the execution phase, after you know what you're building.</li><li><strong>Measure by outcome, not by tokens.</strong> A 300K-token session that ships a feature is better than three 80K-token sessions that each fail halfway.</li><li><strong>Optimize when you feel the pain.</strong> If you're consistently hitting limits before your work is done, then optimize. If you're not, don't fix what isn't broken.</li></ul>
+<div class="callout callout-tip">The best token optimization is getting the right answer on the first try. Invest in clear instructions, good context, and appropriate model selection — not in restricting Claude's ability to do its job.</div>
+            </div>
+        </div>
+        <div class="bottom-nav">
+            <button class="nav-btn nav-btn-prev" >&#8592; Previous</button>
+            <span class="nav-indicator">Section 5 of 6</span>
+            <button class="nav-btn nav-btn-next">Next &#8594;</button>
+        </div>
+        <div class="share-bar">
+            <span class="share-label">Share this section:</span>
+            <a class="share-btn" data-platform="linkedin">LinkedIn</a>
+            <a class="share-btn" data-platform="x">X / Twitter</a>
+            <a class="share-btn" data-platform="copy">Copy link</a>
+        </div>
+        <footer class="course-footer">
+            <div class="footer-brand">
+                <img src="https://res.cloudinary.com/drdkvqdzd/image/upload/v1772094064/silver_logo_transparent_vrvadv.png" alt="Silver AI Consulting" class="footer-logo">
+                <span class="footer-text">Silver AI Consulting</span>
+            </div>
+            <a href="https://tidycal.com/nicsilver/intro-call" class="footer-cta" target="_blank">Book an Introductory Call</a>
+        </footer>
+    </article>
+
+    <article class="course-section" id="section-6">
+        <img src="https://d2p7pge43lyniu.cloudfront.net/output/6c4a6af1-f9a7-4ffb-9d5a-f5dfc07a94fe.jpeg" alt="The Daily Workflow: Putting It All Together" class="section-hero">
+        <div class="section-body">
+            <div class="section-meta">
+                <span class="section-type">checklist</span>
+                <span class="section-reading-time">4 min</span>
+            </div>
+            <h1 class="section-title">The Daily Workflow: Putting It All Together</h1>
+            <div class="section-content">
+                <p>Here's the exact setup I use every day. Each step takes 5 minutes or less. Do them in order — each one builds on the last.</p>
+<h2>Step 1: Set Up Your CLAUDE.md (5 minutes)</h2>
+<p>Create <code>CLAUDE.md</code> at your project root with this starter template:</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span>markdown</span><button class="copy-btn">Copy</button></div><pre><code># [Your Project Name]
+
+One sentence: what this project does.
+
+## Tech Stack
+- [Language/framework]
+- [Database]
+- [Key integrations]
+
+## Key Paths
+| Path | Purpose |
+|------|------|
+| src/ | Source code |
+| tests/ | Test files |
+| .env | Secrets (never commit) |
+
+## Constants
+[Hardcode any IDs, URLs, or config values Claude looks up repeatedly]
+
+## Capabilities
+*Append one line after each session: what worked.*
+
+## What Not To Do
+*Append one line after each session: what failed.*</code></pre></div>
+<div class="prompt-block"><div class="prompt-block-label">Prompt</div><button class="copy-btn">Copy</button><div class="prompt-block-content">Copy this template, fill in your project details, and save as <code>CLAUDE.md</code> in your project root. Takes 3 minutes.</div></div>
+<h2>Step 2: Create Your First Rules File (3 minutes)</h2>
+<p>Create <code>.claude/rules/</code> directory and add one file for your strongest preference:</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span>bash</span><button class="copy-btn">Copy</button></div><pre><code>mkdir -p .claude/rules</code></pre></div>
+<div class="code-block-wrapper"><div class="code-block-header"><span>markdown</span><button class="copy-btn">Copy</button></div><pre><code># .claude/rules/code-style.md
+
+- Use descriptive variable names
+- Keep functions under 20 lines
+- Handle errors at boundaries, trust internal code
+- No placeholder or TODO code in commits</code></pre></div>
+<p>This auto-loads every session without you explaining it.</p>
+<h2>Step 3: Build Your First Forked Skill (5 minutes)</h2>
+<p>Create a simple skill that runs in isolated context:</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span>bash</span><button class="copy-btn">Copy</button></div><pre><code>mkdir -p .claude/skills/quick-research</code></pre></div>
+<div class="code-block-wrapper"><div class="code-block-header"><span>markdown</span><button class="copy-btn">Copy</button></div><pre><code># .claude/skills/quick-research/SKILL.md
+---
+name: quick-research
+description: Research a topic across the codebase
+model: sonnet
+context: fork
+---
+
+Search the codebase for all files related to: $ARGUMENTS
+
+For each relevant file:
+1. Read the key sections
+2. Note any patterns or conventions
+3. Flag potential issues
+
+Return a concise summary (under 200 words).</code></pre></div>
+<p>Now when you type <code>/quick-research authentication</code>, it spins up a Sonnet agent with a clean 2K-token context instead of dumping search results into your 100K main thread.</p>
+<h2>Step 4: Set Up Model Tiering (2 minutes)</h2>
+<p>Add model overrides to your existing skills and agents:</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span>yaml</span><button class="copy-btn">Copy</button></div><pre><code># Research/exploration skills → sonnet
+model: sonnet
+
+# Classification/filtering agents → haiku
+model: haiku
+
+# Main conversation + synthesis → opus (default)
+# No change needed</code></pre></div>
+<h2>Step 5: Start Your Session Routine (daily, 30 seconds)</h2>
+<p>At the start of each session:</p>
+<ol><li>Check the status bar for context usage</li><li>If continuing previous work, start a fresh session with a clear prompt referencing CLAUDE.md</li><li>Let Claude read CLAUDE.md — your persistent memory handles the rest</li></ol>
+<p>At the end of each session:</p>
+<div class="prompt-block"><div class="prompt-block-label">Prompt</div><button class="copy-btn">Copy</button><div class="prompt-block-content">"Update CLAUDE.md: append what worked to Capabilities, what failed to What Not To Do. One line each."</div></div>
+<h2>The Compound Effect</h2>
+<p>Here's what happens after a week of this routine:</p>
+<ul><li>Your CLAUDE.md has 5-10 capability entries and 3-5 anti-patterns</li><li>Claude stops making the same mistakes twice</li><li>Your forked skills handle research without bloating your main context</li><li>Model tiering cuts your token usage on routine tasks by 50-70%</li><li>You stop hitting limits before your work is done</li></ul>
+<p>After a month, your CLAUDE.md is a dense knowledge base of your project's patterns, gotchas, and conventions. New sessions start with Claude already knowing everything that matters. No re-explanation. No wasted tokens.</p>
+<p>This is the difference between fighting your tools and having your tools fight for you.</p>
+<h2>Quick Reference Card</h2>
+<div class="table-wrapper"><table><thead><tr><th>Technique</th><th>Token Saving</th><th>Effort</th></tr></thead><tbody><tr><td>CLAUDE.md with hardcoded values</td><td>~500-2000/session</td><td>5 min setup</td></tr><tr><td>Rules files</td><td>~200-500/session</td><td>3 min per file</td></tr><tr><td>context: fork on subagents</td><td>50-90% per agent</td><td>2 min per skill</td></tr><tr><td>Model tiering</td><td>30-70% per task</td><td>2 min config</td></tr><tr><td>Scripts for deterministic work</td><td>80%+ per API call</td><td>10-30 min per script</td></tr><tr><td>"What Not To Do" log</td><td>Prevents 1-2 retries/day</td><td>30 sec/entry</td></tr></tbody></table></div>
+            </div>
+        </div>
+        <div class="bottom-nav">
+            <button class="nav-btn nav-btn-prev" >&#8592; Previous</button>
+            <span class="nav-indicator">Section 6 of 6</span>
+            <button class="nav-btn nav-btn-next">Next &#8594;</button>
+        </div>
+        <div class="share-bar">
+            <span class="share-label">Share this section:</span>
+            <a class="share-btn" data-platform="linkedin">LinkedIn</a>
+            <a class="share-btn" data-platform="x">X / Twitter</a>
+            <a class="share-btn" data-platform="copy">Copy link</a>
+        </div>
+        <footer class="course-footer">
+            <div class="footer-brand">
+                <img src="https://res.cloudinary.com/drdkvqdzd/image/upload/v1772094064/silver_logo_transparent_vrvadv.png" alt="Silver AI Consulting" class="footer-logo">
+                <span class="footer-text">Silver AI Consulting</span>
+            </div>
+            <a href="https://tidycal.com/nicsilver/intro-call" class="footer-cta" target="_blank">Book an Introductory Call</a>
+        </footer>
+    </article>
+    </main>
+
+    <!-- Email Gate Modal -->
+    <div class="email-gate-overlay" id="emailGate">
+        <div class="email-gate-modal">
+            <h2>Get the complete implementation checklist</h2>
+            <p>Enter your email to unlock the final section with copy-paste templates and the full daily workflow.</p>
+            <div id="flodeskFormContainer">
+                <div id="fd-form-69d6259bc420cb9799758009"></div>
+            </div>
+            <button class="email-gate-skip" id="emailSkip">Skip for now</button>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        'use strict';
+
+        // ===== Config =====
+        const TOTAL = 6;
+        const EMAIL_GATE_ENABLED = true;
+        const EMAIL_GATE_SECTION = TOTAL;
+        const COURSE_SLUG = 'saving-tokens-claude-code';
+
+        // ===== State =====
+        let current = 1;
+
+        // ===== DOM =====
+        const sections = document.querySelectorAll('.course-section');
+        const tocLinks = document.querySelectorAll('.toc-link');
+        const progressBar = document.getElementById('progressBar');
+        const navCenter = document.getElementById('navCenter');
+        const sidebar = document.getElementById('sidebar');
+        const tocToggle = document.getElementById('tocToggle');
+        const themeToggle = document.getElementById('themeToggle');
+        const emailGate = document.getElementById('emailGate');
+        const emailSkip = document.getElementById('emailSkip');
+
+        // ===== Theme =====
+        function initTheme() {
+            const saved = localStorage.getItem('course-theme');
+            if (saved === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeToggle.textContent = '\u2600';
+            }
+        }
+        themeToggle.addEventListener('click', function() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            themeToggle.textContent = isDark ? '\u263D' : '\u2600';
+            localStorage.setItem('course-theme', isDark ? 'light' : 'dark');
+        });
+
+        // ===== Navigation =====
+        function goTo(n) {
+            if (n < 1 || n > TOTAL) return;
+
+            // Email gate check
+            if (EMAIL_GATE_ENABLED && n === EMAIL_GATE_SECTION && !isUnlocked()) {
+                emailGate.classList.add('visible');
+                initFlodeskForm();
+                return;
+            }
+
+            current = n;
+            sections.forEach(function(s) { s.classList.remove('active'); });
+            tocLinks.forEach(function(l) { l.classList.remove('active'); });
+
+            var target = document.getElementById('section-' + n);
+            if (target) target.classList.add('active');
+            var tocTarget = document.querySelector('.toc-link[data-section="' + n + '"]');
+            if (tocTarget) tocTarget.classList.add('active');
+
+            // Update progress
+            var pct = (n / TOTAL) * 100;
+            progressBar.style.width = pct + '%';
+            navCenter.textContent = 'Section ' + n + ' of ' + TOTAL;
+
+            // Update nav buttons
+            var prevBtns = document.querySelectorAll('.nav-btn-prev');
+            var nextBtns = document.querySelectorAll('.nav-btn-next');
+            prevBtns.forEach(function(b) { b.disabled = n === 1; });
+            nextBtns.forEach(function(b) {
+                if (n === TOTAL) {
+                    b.style.display = 'none';
+                } else {
+                    b.style.display = 'flex';
+                    b.disabled = false;
+                }
+            });
+
+            // Update hash
+            history.replaceState(null, '', '#section-' + n);
+
+            // Close sidebar on mobile
+            sidebar.classList.remove('open');
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ToC clicks
+        tocLinks.forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                goTo(parseInt(this.getAttribute('data-section')));
+            });
+        });
+
+        // Bottom nav clicks — delegated
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('.nav-btn-prev');
+            if (btn && !btn.disabled) { goTo(current - 1); return; }
+            btn = e.target.closest('.nav-btn-next');
+            if (btn && !btn.disabled) { goTo(current + 1); return; }
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); goTo(current + 1); }
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+        });
+
+        // Mobile ToC toggle
+        tocToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('open');
+        });
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(e) {
+            if (window.innerWidth <= 960 && sidebar.classList.contains('open')) {
+                if (!sidebar.contains(e.target) && e.target !== tocToggle) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+
+        // ===== Copy to Clipboard =====
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('.copy-btn');
+            if (!btn) return;
+
+            var wrapper = btn.closest('.code-block-wrapper') || btn.closest('.prompt-block');
+            var text = '';
+            if (wrapper) {
+                var pre = wrapper.querySelector('pre');
+                var content = wrapper.querySelector('.prompt-block-content');
+                if (pre) text = pre.textContent;
+                else if (content) text = content.textContent;
+            }
+
+            navigator.clipboard.writeText(text).then(function() {
+                var orig = btn.textContent;
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(function() {
+                    btn.textContent = orig;
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        });
+
+        // ===== Email Gate =====
+        function isUnlocked() {
+            return localStorage.getItem('course-unlocked-' + COURSE_SLUG) === 'true';
+        }
+
+        function unlock() {
+            localStorage.setItem('course-unlocked-' + COURSE_SLUG, 'true');
+            emailGate.classList.remove('visible');
+            goTo(EMAIL_GATE_SECTION);
+        }
+
+        // Watch for Flodesk form submission (form navigates away or hides on success)
+        // Also unlock after a delay if the form container changes (Flodesk shows a thank-you state)
+        var formContainer = document.getElementById('flodeskFormContainer');
+        if (formContainer) {
+            var observer = new MutationObserver(function() {
+                // Flodesk replaces form content with success message on submit
+                if (formContainer.querySelector('.fd-success') || formContainer.textContent.includes('Thank')) {
+                    unlock();
+                }
+            });
+            observer.observe(formContainer, { childList: true, subtree: true, characterData: true });
+        }
+
+        emailSkip.addEventListener('click', unlock);
+
+        // ===== Share =====
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('.share-btn');
+            if (!btn) return;
+            e.preventDefault();
+
+            var platform = btn.getAttribute('data-platform');
+            var url = window.location.origin + window.location.pathname + '#section-' + current;
+            var title = document.title;
+            var shareUrl = '';
+
+            if (platform === 'linkedin') {
+                shareUrl = 'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(url);
+            } else if (platform === 'x') {
+                shareUrl = 'https://x.com/intent/tweet?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(title);
+            } else if (platform === 'copy') {
+                navigator.clipboard.writeText(url).then(function() {
+                    btn.textContent = 'Copied!';
+                    setTimeout(function() { btn.textContent = 'Copy link'; }, 2000);
+                });
+                return;
+            }
+
+            if (shareUrl) window.open(shareUrl, '_blank', 'width=600,height=400');
+        });
+
+        // ===== Flodesk Form Init =====
+        var FLODESK_FORM_ID = '69d6259bc420cb9799758009';
+        var flodeskInitialized = false;
+
+        function initFlodeskForm() {
+            if (flodeskInitialized || !FLODESK_FORM_ID) return;
+            // Wait for fd to be ready, then init
+            var attempts = 0;
+            var tryInit = function() {
+                if (window.fd) {
+                    window.fd('form', {
+                        formId: FLODESK_FORM_ID,
+                        containerEl: '#fd-form-' + FLODESK_FORM_ID
+                    });
+                    flodeskInitialized = true;
+                } else if (attempts < 20) {
+                    attempts++;
+                    setTimeout(tryInit, 250);
+                }
+            };
+            tryInit();
+        }
+
+        // ===== Init =====
+        initTheme();
+
+        // Parse hash on load
+        var hash = window.location.hash;
+        var startSection = 1;
+        if (hash && hash.match(/^#section-\d+$/)) {
+            var parsed = parseInt(hash.replace('#section-', ''));
+            if (parsed >= 1 && parsed <= TOTAL) startSection = parsed;
+        }
+        goTo(startSection);
+    })();
+    </script>
+</body>
+</html>
