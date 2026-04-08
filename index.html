@@ -1345,6 +1345,12 @@ Return top 5 findings with source URLs.</code></pre></div>
         // ===== Init =====
         initTheme();
 
+        // Remove lock icon if already unlocked
+        if (isChecklistUnlocked()) {
+            var lock = document.querySelector('.toc-lock');
+            if (lock) lock.remove();
+        }
+
         // Handle Flodesk redirect: ?gate=unlocked → fetch section, inject, navigate
         var params = new URLSearchParams(window.location.search);
         if (params.get('gate') === 'unlocked' && EMAIL_GATE_ENABLED) {
