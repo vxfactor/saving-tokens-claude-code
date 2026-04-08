@@ -4,7 +4,7 @@ function checkSubscriber(email, apiKey) {
   return new Promise((resolve) => {
     const opts = {
       hostname: 'api.flodesk.com',
-      path: '/v1/subscribers/' + encodeURIComponent(email),
+      path: '/v1/subscribers/' + email,
       method: 'GET',
       headers: { 'Authorization': 'Basic ' + Buffer.from(apiKey + ':').toString('base64') },
     };
