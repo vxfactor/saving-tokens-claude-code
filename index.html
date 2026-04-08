@@ -1115,7 +1115,7 @@ Return top 5 findings with source URLs.</code></pre></div>
         let current = 1;
 
         // ===== DOM =====
-        const sections = document.querySelectorAll('.course-section');
+        var sections = document.querySelectorAll('.course-section');
         const tocLinks = document.querySelectorAll('.toc-link');
         const progressBar = document.getElementById('progressBar');
         const navCenter = document.getElementById('navCenter');
@@ -1281,8 +1281,9 @@ Return top 5 findings with source URLs.</code></pre></div>
                 .then(function(r) { return r.ok ? r.text() : Promise.reject(); })
                 .then(function(html) {
                     placeholder.outerHTML = html;
+                    // Re-query sections since outerHTML replaced the DOM node
+                    sections = document.querySelectorAll('.course-section');
                     localStorage.setItem('checklist-unlocked-' + COURSE_SLUG, 'true');
-                    // Update lock icon in sidebar
                     var lock = document.querySelector('.toc-lock');
                     if (lock) lock.remove();
                 });
