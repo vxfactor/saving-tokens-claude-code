@@ -657,15 +657,6 @@
             text-align: center;
             box-shadow: 0 24px 48px var(--shadow);
         }
-        /* Collapse empty Flodesk headings/descriptions inside the modal */
-        .email-gate-modal .fd-form h1,
-        .email-gate-modal .fd-form h2,
-        .email-gate-modal .fd-form h3,
-        .email-gate-modal .fd-form p:empty,
-        .email-gate-modal .fd-form [class*="heading"],
-        .email-gate-modal .fd-form [class*="description"] {
-            display: none !important;
-        }
         .email-gate-modal h2 {
             font-family: var(--font-display);
             font-size: 24px;
@@ -1103,8 +1094,6 @@ Return top 5 findings with source URLs.</code></pre></div>
     <!-- Email Gate Modal -->
     <div class="email-gate-overlay" id="emailGate">
         <div class="email-gate-modal">
-            <h2>Get the complete implementation checklist</h2>
-            <p>Enter your email to unlock the final section with copy-paste templates and the full daily workflow.</p>
             <div id="flodeskFormContainer">
                 <div id="fd-form-69d6259bc420cb9799758009"></div>
             </div>
