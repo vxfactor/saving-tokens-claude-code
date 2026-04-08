@@ -1373,19 +1373,6 @@ model: haiku
             goTo(EMAIL_GATE_SECTION);
         }
 
-        // Watch for Flodesk form submission (form navigates away or hides on success)
-        // Also unlock after a delay if the form container changes (Flodesk shows a thank-you state)
-        var formContainer = document.getElementById('flodeskFormContainer');
-        if (formContainer) {
-            var observer = new MutationObserver(function() {
-                // Flodesk replaces form content with success message on submit
-                if (formContainer.querySelector('.fd-success') || formContainer.textContent.includes('Thank')) {
-                    unlock();
-                }
-            });
-            observer.observe(formContainer, { childList: true, subtree: true, characterData: true });
-        }
-
         emailSkip.addEventListener('click', unlock);
 
         // ===== Share =====
@@ -1439,6 +1426,13 @@ model: haiku
 
         // ===== Init =====
         initTheme();
+
+        // Check for Flodesk redirect unlock (?gate=unlocked)
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('gate') === 'unlocked') {
+            localStorage.setItem('course-unlocked-' + COURSE_SLUG, 'true');
+            history.replaceState(null, '', window.location.pathname + '#section-' + EMAIL_GATE_SECTION);
+        }
 
         // Parse hash on load
         var hash = window.location.hash;
