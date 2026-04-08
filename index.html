@@ -770,6 +770,7 @@
 <li class="toc-item"><a class="toc-link" data-section="3"><span class="toc-num">03</span>Model Tiering: Stop Using Opus for Everything</a></li>
 <li class="toc-item"><a class="toc-link" data-section="4"><span class="toc-num">04</span>Subagents and Parallel Execution</a></li>
 <li class="toc-item"><a class="toc-link" data-section="5"><span class="toc-num">05</span>When NOT to Optimize (The Counter-Intuitive Section)</a></li>
+<li class="toc-item"><a class="toc-link" data-section="6" data-gated="true"><span class="toc-num">06</span>The Daily Workflow: Putting It All Together <span class="toc-lock">&#128274;</span></a></li>
         </ul>
     </aside>
 
@@ -1109,8 +1110,8 @@ Return top 5 findings with source URLs.</code></pre></div>
         // ===== Config =====
         const TOTAL = 5;
         const EMAIL_GATE_ENABLED = true;
-        const EMAIL_GATE_SECTION = TOTAL;
         const COURSE_SLUG = 'saving-tokens-claude-code';
+        const GATE_URL = '/api/checklist?token=fe860bdbe915a858d5c6093fbba3ad43e39f6045737789eb2e541334228888ba';
 
         // ===== State =====
         let current = 1;
@@ -1198,6 +1199,14 @@ Return top 5 findings with source URLs.</code></pre></div>
         tocLinks.forEach(function(link) {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
+                if (this.dataset.gated) {
+                    if (isChecklistUnlocked()) {
+                        window.location.href = GATE_URL;
+                    } else {
+                        showEmailGate();
+                    }
+                    return;
+                }
                 goTo(parseInt(this.getAttribute('data-section')));
             });
         });
@@ -1207,7 +1216,11 @@ Return top 5 findings with source URLs.</code></pre></div>
             var btn = e.target.closest('.nav-btn-prev');
             if (btn && !btn.disabled) { goTo(current - 1); return; }
             btn = e.target.closest('.nav-btn-next');
-            if (btn && btn.dataset.gateAction) { showEmailGate(); return; }
+            if (btn && btn.dataset.gateAction) {
+                if (isChecklistUnlocked()) { window.location.href = GATE_URL; }
+                else { showEmailGate(); }
+                return;
+            }
             if (btn && !btn.disabled) { goTo(current + 1); return; }
         });
 
@@ -1258,8 +1271,11 @@ Return top 5 findings with source URLs.</code></pre></div>
 
         // ===== Email Gate =====
         // The gated section is served by a Netlify Function — not in this page.
-        // The "Next" button on the last section triggers the email modal.
-        // Flodesk redirects to the function URL after submission.
+        // localStorage remembers if user already signed up (set by the checklist page).
+        function isChecklistUnlocked() {
+            return localStorage.getItem('checklist-unlocked-' + COURSE_SLUG) === 'true';
+        }
+
         emailSkip.addEventListener('click', function() {
             emailGate.classList.remove('visible');
         });

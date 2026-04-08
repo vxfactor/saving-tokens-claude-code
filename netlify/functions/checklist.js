@@ -872,6 +872,9 @@ model: haiku
         </article>
     </main>
     <script>
+        // Mark as unlocked so the main course remembers
+        localStorage.setItem('checklist-unlocked-saving-tokens-claude-code', 'true');
+
         var t = document.getElementById('themeToggle');
         t.addEventListener('click', function() {
             var d = document.documentElement.getAttribute('data-theme') === 'dark';

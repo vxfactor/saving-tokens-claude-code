@@ -1,14 +1,13 @@
+functionsDirectory = "/Users/niclassilver/Projects/Business/active/mini-course/saving-tokens-claude-code/build/netlify/functions"
+functionsDirectoryOrigin = "config"
+redirectsOrigin = "config"
 plugins = []
 headers = []
-redirects = []
-
-[functions]
-
-[functions."*"]
 
 [build]
 publish = "/Users/niclassilver/Projects/Business/active/mini-course/saving-tokens-claude-code/build"
 publishOrigin = "default"
+functions = "/Users/niclassilver/Projects/Business/active/mini-course/saving-tokens-claude-code/build/netlify/functions"
 
 [build.environment]
 
@@ -23,3 +22,19 @@ publishOrigin = "default"
 [build.processing.js]
 
 [build.services]
+
+[functions]
+
+[functions."*"]
+
+[[redirects]]
+from = "/api/checklist"
+to = "/.netlify/functions/checklist"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
