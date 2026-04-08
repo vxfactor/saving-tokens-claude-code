@@ -1421,10 +1421,11 @@ Return top 5 findings with source URLs.</code></pre></div>
         }
 
         // Handle Flodesk redirect: ?gate=unlocked → show verify input
+        var gateRedirect = false;
         var params = new URLSearchParams(window.location.search);
         if (params.get('gate') === 'unlocked' && EMAIL_GATE_ENABLED) {
-            history.replaceState(null, '', window.location.pathname + '#section-' + TOTAL);
-            // Show the modal in verify mode (they just signed up, need to enter email once)
+            gateRedirect = true;
+            history.replaceState(null, '', window.location.pathname);
             showEmailGate();
             if (signupView) signupView.style.display = 'none';
             if (verifyView) verifyView.style.display = 'block';
@@ -1438,6 +1439,8 @@ Return top 5 findings with source URLs.</code></pre></div>
             var parsed = parseInt(hash.replace('#section-', ''));
             if (parsed >= 1 && parsed <= TOTAL) startSection = parsed;
         }
+        // Don't navigate to gated section on redirect — stay on last visible section
+        if (gateRedirect || startSection === TOTAL) startSection = TOTAL - 1;
         goTo(startSection);
     })();
     </script>
