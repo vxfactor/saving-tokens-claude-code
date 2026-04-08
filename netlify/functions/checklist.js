@@ -667,6 +667,15 @@ exports.handler = async (event) => {
             text-align: center;
             box-shadow: 0 24px 48px var(--shadow);
         }
+        /* Collapse empty Flodesk headings/descriptions inside the modal */
+        .email-gate-modal .fd-form h1,
+        .email-gate-modal .fd-form h2,
+        .email-gate-modal .fd-form h3,
+        .email-gate-modal .fd-form p:empty,
+        .email-gate-modal .fd-form [class*="heading"],
+        .email-gate-modal .fd-form [class*="description"] {
+            display: none !important;
+        }
         .email-gate-modal h2 {
             font-family: var(--font-display);
             font-size: 24px;
