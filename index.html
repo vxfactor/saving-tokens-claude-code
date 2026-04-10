@@ -11,7 +11,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <script>(function(w,d,t,h,s,n){w.FlodeskObject=n;var fn=function(){(w[n].q=w[n].q||[]).push(arguments)};w[n]=w[n]||fn;var f=d.getElementsByTagName(t)[0];var v='?v='+Math.floor(new Date().getTime()/(120*1000))*60;var sm=d.createElement(t);sm.async=true;sm.type='module';sm.src=h+s+'.mjs'+v;f.parentNode.insertBefore(sm,f);var sn=d.createElement(t);sn.async=true;sn.noModule=true;sn.src=h+s+'.js'+v;f.parentNode.insertBefore(sn,f)})(window,document,'script','https://assets.flodesk.com','/universal','fd');</script>
     <style>
         /* ===== CSS Variables (Brand Tokens) ===== */
         :root {
@@ -634,86 +633,6 @@
             background: #d93d22;
         }
 
-        /* ===== Email Gate Modal ===== */
-        .email-gate-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(26, 23, 20, 0.7);
-            backdrop-filter: blur(4px);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-        }
-        .email-gate-overlay.visible {
-            display: flex;
-        }
-        .email-gate-modal {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 48px 40px;
-            max-width: 440px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 24px 48px var(--shadow);
-        }
-        .email-gate-modal h2 {
-            font-family: var(--font-display);
-            font-size: 24px;
-            margin-bottom: 8px;
-            color: var(--text);
-        }
-        .email-gate-modal p {
-            font-size: 15px;
-            color: var(--text-secondary);
-            margin-bottom: 24px;
-        }
-        .email-gate-input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-family: var(--font-body);
-            font-size: 15px;
-            background: var(--bg);
-            color: var(--text);
-            margin-bottom: 12px;
-            outline: none;
-            transition: border-color var(--transition);
-        }
-        .email-gate-input:focus {
-            border-color: var(--coral);
-        }
-        .email-gate-submit {
-            width: 100%;
-            padding: 12px;
-            background: var(--coral);
-            color: var(--white);
-            border: none;
-            border-radius: 8px;
-            font-family: var(--font-body);
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background var(--transition);
-        }
-        .email-gate-submit:hover {
-            background: #d93d22;
-        }
-        .email-gate-skip {
-            display: block;
-            margin-top: 12px;
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 13px;
-            cursor: pointer;
-            font-family: var(--font-body);
-        }
-        .email-gate-skip:hover {
-            color: var(--text);
-        }
-
         /* ===== Responsive ===== */
         @media (max-width: 960px) {
             .sidebar {
@@ -743,7 +662,6 @@
             .share-bar { padding: 0 20px 32px; }
             .course-footer { padding: 24px 20px; }
             .nav-btn { padding: 10px 16px; font-size: 13px; }
-            .email-gate-modal { padding: 32px 24px; }
         }
     </style>
 </head>
@@ -770,7 +688,7 @@
 <li class="toc-item"><a class="toc-link" data-section="3"><span class="toc-num">03</span>Model Tiering: Stop Using Opus for Everything</a></li>
 <li class="toc-item"><a class="toc-link" data-section="4"><span class="toc-num">04</span>Subagents and Parallel Execution</a></li>
 <li class="toc-item"><a class="toc-link" data-section="5"><span class="toc-num">05</span>When NOT to Optimize (The Counter-Intuitive Section)</a></li>
-<li class="toc-item"><a class="toc-link" data-section="6" data-gated="true"><span class="toc-num">06</span>The Daily Workflow: Putting It All Together <span class="toc-lock">&#128274;</span></a></li>
+<li class="toc-item"><a class="toc-link" data-section="6"><span class="toc-num">06</span>The Daily Workflow: Putting It All Together</a></li>
         </ul>
     </aside>
 
@@ -1089,30 +1007,118 @@ Return top 5 findings with source URLs.</code></pre></div>
             <a href="https://tidycal.com/nicsilver/intro-call" class="footer-cta" target="_blank">Book an Introductory Call</a>
         </footer>
     </article>
-    </main>
 
-    <!-- Email Gate Modal -->
-    <div class="email-gate-overlay" id="emailGate">
-        <div class="email-gate-modal">
-            <!-- Signup view (default for new users) -->
-            <div id="signupView">
-                <div id="flodeskFormContainer">
-                    <div id="fd-form-69d6259bc420cb9799758009"></div>
-                </div>
-                <button class="email-gate-skip" id="alreadySignedUp" style="margin-top:12px;background:none;border:none;color:var(--text-secondary);font-size:13px;cursor:pointer;font-family:var(--font-body);">Already signed up? Enter your email</button>
+    <article class="course-section" id="section-6">
+        <img src="https://d2p7pge43lyniu.cloudfront.net/output/6c4a6af1-f9a7-4ffb-9d5a-f5dfc07a94fe.jpeg" alt="The Daily Workflow: Putting It All Together" class="section-hero">
+        <div class="section-body">
+            <div class="section-meta">
+                <span class="section-type">checklist</span>
+                <span class="section-reading-time">4 min</span>
             </div>
-            <!-- Verify view (for returning users) -->
-            <div id="verifyView" style="display:none;">
-                <h2 style="font-family:var(--font-display);font-size:24px;margin-bottom:8px;color:var(--text);">Welcome back</h2>
-                <p style="font-size:15px;color:var(--text-secondary);margin-bottom:24px;">Enter the email you signed up with to access the checklist.</p>
-                <p id="gateError" style="display:none;color:var(--coral);font-size:14px;margin-bottom:12px;"></p>
-                <input type="email" id="verifyEmail" placeholder="your@email.com" class="email-gate-input">
-                <button id="verifyBtn" class="email-gate-submit">Access Checklist</button>
-                <button id="showSignup" style="margin-top:12px;background:none;border:none;color:var(--text-secondary);font-size:13px;cursor:pointer;font-family:var(--font-body);">Need to sign up? Click here</button>
+            <h1 class="section-title">The Daily Workflow: Putting It All Together</h1>
+            <div class="section-content">
+                <p>Here's the exact setup I use every day. Each step takes 5 minutes or less. Do them in order — each one builds on the last.</p>
+<h2>Step 1: Set Up Your CLAUDE.md (5 minutes)</h2>
+<p>Create <code>CLAUDE.md</code> at your project root with this starter template:</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span>markdown</span><button class="copy-btn">Copy</button></div><pre><code># [Your Project Name]
+
+One sentence: what this project does.
+
+## Tech Stack
+- [Language/framework]
+- [Database]
+- [Key integrations]
+
+## Key Paths
+| Path | Purpose |
+|------|------|
+| src/ | Source code |
+| tests/ | Test files |
+| .env | Secrets (never commit) |
+
+## Constants
+[Hardcode any IDs, URLs, or config values Claude looks up repeatedly]
+
+## Capabilities
+*Append one line after each session: what worked.*
+
+## What Not To Do
+*Append one line after each session: what failed.*</code></pre></div>
+<div class="prompt-block"><div class="prompt-block-label">Prompt</div><button class="copy-btn">Copy</button><div class="prompt-block-content">Copy this template, fill in your project details, and save as <code>CLAUDE.md</code> in your project root. Takes 3 minutes.</div></div>
+<h2>Step 2: Create Your First Rules File (3 minutes)</h2>
+<p>Create <code>.claude/rules/</code> directory and add one file for your strongest preference:</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span>bash</span><button class="copy-btn">Copy</button></div><pre><code>mkdir -p .claude/rules</code></pre></div>
+<div class="code-block-wrapper"><div class="code-block-header"><span>markdown</span><button class="copy-btn">Copy</button></div><pre><code># .claude/rules/code-style.md
+
+- Use descriptive variable names
+- Keep functions under 20 lines
+- Handle errors at boundaries, trust internal code
+- No placeholder or TODO code in commits</code></pre></div>
+<p>This auto-loads every session without you explaining it.</p>
+<h2>Step 3: Build Your First Forked Skill (5 minutes)</h2>
+<p>Create a simple skill that runs in isolated context:</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span>bash</span><button class="copy-btn">Copy</button></div><pre><code>mkdir -p .claude/skills/quick-research</code></pre></div>
+<div class="code-block-wrapper"><div class="code-block-header"><span>markdown</span><button class="copy-btn">Copy</button></div><pre><code># .claude/skills/quick-research/SKILL.md
+---
+name: quick-research
+description: Research a topic across the codebase
+model: sonnet
+context: fork
+---
+
+Search the codebase for all files related to: $ARGUMENTS
+
+For each relevant file:
+1. Read the key sections
+2. Note any patterns or conventions
+3. Flag potential issues
+
+Return a concise summary (under 200 words).</code></pre></div>
+<p>Now when you type <code>/quick-research authentication</code>, it spins up a Sonnet agent with a clean 2K-token context instead of dumping search results into your 100K main thread.</p>
+<h2>Step 4: Set Up Model Tiering (2 minutes)</h2>
+<p>Add model overrides to your existing skills and agents:</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span>yaml</span><button class="copy-btn">Copy</button></div><pre><code># Research/exploration skills → sonnet
+model: sonnet
+
+# Classification/filtering agents → haiku
+model: haiku
+
+# Main conversation + synthesis → opus (default)
+# No change needed</code></pre></div>
+<h2>Step 5: Start Your Session Routine (daily, 30 seconds)</h2>
+<p>At the start of each session:</p>
+<ol><li>Check the status bar for context usage</li><li>If continuing previous work, start a fresh session with a clear prompt referencing CLAUDE.md</li><li>Let Claude read CLAUDE.md — your persistent memory handles the rest</li></ol>
+<p>At the end of each session:</p>
+<div class="prompt-block"><div class="prompt-block-label">Prompt</div><button class="copy-btn">Copy</button><div class="prompt-block-content">"Update CLAUDE.md: append what worked to Capabilities, what failed to What Not To Do. One line each."</div></div>
+<h2>The Compound Effect</h2>
+<p>Here's what happens after a week of this routine:</p>
+<ul><li>Your CLAUDE.md has 5-10 capability entries and 3-5 anti-patterns</li><li>Claude stops making the same mistakes twice</li><li>Your forked skills handle research without bloating your main context</li><li>Model tiering cuts your token usage on routine tasks by 50-70%</li><li>You stop hitting limits before your work is done</li></ul>
+<p>After a month, your CLAUDE.md is a dense knowledge base of your project's patterns, gotchas, and conventions. New sessions start with Claude already knowing everything that matters. No re-explanation. No wasted tokens.</p>
+<p>This is the difference between fighting your tools and having your tools fight for you.</p>
+<h2>Quick Reference Card</h2>
+<div class="table-wrapper"><table><thead><tr><th>Technique</th><th>Token Saving</th><th>Effort</th></tr></thead><tbody><tr><td>CLAUDE.md with hardcoded values</td><td>~500-2000/session</td><td>5 min setup</td></tr><tr><td>Rules files</td><td>~200-500/session</td><td>3 min per file</td></tr><tr><td>context: fork on subagents</td><td>50-90% per agent</td><td>2 min per skill</td></tr><tr><td>Model tiering</td><td>30-70% per task</td><td>2 min config</td></tr><tr><td>Scripts for deterministic work</td><td>80%+ per API call</td><td>10-30 min per script</td></tr><tr><td>"What Not To Do" log</td><td>Prevents 1-2 retries/day</td><td>30 sec/entry</td></tr></tbody></table></div>
             </div>
-            <button class="email-gate-skip" id="emailSkip">Skip for now</button>
         </div>
-    </div>
+        <div class="bottom-nav">
+            <button class="nav-btn nav-btn-prev" >&#8592; Previous</button>
+            <span class="nav-indicator">Section 6 of 6</span>
+            <button class="nav-btn nav-btn-next">Next &#8594;</button>
+        </div>
+        <div class="share-bar">
+            <span class="share-label">Share this section:</span>
+            <a class="share-btn" data-platform="linkedin">LinkedIn</a>
+            <a class="share-btn" data-platform="x">X / Twitter</a>
+            <a class="share-btn" data-platform="copy">Copy link</a>
+        </div>
+        <footer class="course-footer">
+            <div class="footer-brand">
+                <img src="https://res.cloudinary.com/drdkvqdzd/image/upload/v1772094064/silver_logo_transparent_vrvadv.png" alt="Silver AI Consulting" class="footer-logo">
+                <span class="footer-text">Silver AI Consulting</span>
+            </div>
+            <a href="https://tidycal.com/nicsilver/intro-call" class="footer-cta" target="_blank">Book an Introductory Call</a>
+        </footer>
+    </article>
+    </main>
 
     <script>
     (function() {
@@ -1120,8 +1126,6 @@ Return top 5 findings with source URLs.</code></pre></div>
 
         // ===== Config =====
         const TOTAL = 6;
-        const EMAIL_GATE_ENABLED = true;
-        const COURSE_SLUG = 'saving-tokens-claude-code';
 
         // ===== State =====
         let current = 1;
@@ -1134,8 +1138,6 @@ Return top 5 findings with source URLs.</code></pre></div>
         const sidebar = document.getElementById('sidebar');
         const tocToggle = document.getElementById('tocToggle');
         const themeToggle = document.getElementById('themeToggle');
-        const emailGate = document.getElementById('emailGate');
-        const emailSkip = document.getElementById('emailSkip');
 
         // ===== Theme =====
         function initTheme() {
@@ -1153,11 +1155,6 @@ Return top 5 findings with source URLs.</code></pre></div>
         });
 
         // ===== Navigation =====
-        function showEmailGate() {
-            emailGate.classList.add('visible');
-            initFlodeskForm();
-        }
-
         function goTo(n) {
             if (n < 1 || n > TOTAL) return;
 
@@ -1180,18 +1177,12 @@ Return top 5 findings with source URLs.</code></pre></div>
             var nextBtns = document.querySelectorAll('.nav-btn-next');
             prevBtns.forEach(function(b) { b.disabled = n === 1; });
             nextBtns.forEach(function(b) {
-                if (n === TOTAL && EMAIL_GATE_ENABLED) {
-                    b.innerHTML = 'Get the Checklist &#8594;';
-                    b.style.display = 'flex';
-                    b.disabled = false;
-                    b.dataset.gateAction = 'true';
-                } else if (n === TOTAL) {
+                if (n === TOTAL) {
                     b.style.display = 'none';
                 } else {
                     b.innerHTML = 'Next &#8594;';
                     b.style.display = 'flex';
                     b.disabled = false;
-                    delete b.dataset.gateAction;
                 }
             });
 
@@ -1209,15 +1200,6 @@ Return top 5 findings with source URLs.</code></pre></div>
         tocLinks.forEach(function(link) {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
-                if (this.dataset.gated) {
-                    var savedEmail = getSavedEmail();
-                    if (savedEmail) {
-                        loadGatedSection(savedEmail).then(function(ok) { if (ok) goTo(TOTAL); });
-                    } else {
-                        showEmailGate();
-                    }
-                    return;
-                }
                 goTo(parseInt(this.getAttribute('data-section')));
             });
         });
@@ -1227,13 +1209,6 @@ Return top 5 findings with source URLs.</code></pre></div>
             var btn = e.target.closest('.nav-btn-prev');
             if (btn && !btn.disabled) { goTo(current - 1); return; }
             btn = e.target.closest('.nav-btn-next');
-            if (btn && btn.dataset.gateAction) {
-                var savedEmail = getSavedEmail();
-                if (savedEmail) {
-                    loadGatedSection(savedEmail).then(function(ok) { if (ok) goTo(TOTAL); });
-                } else { showEmailGate(); }
-                return;
-            }
             if (btn && !btn.disabled) { goTo(current + 1); return; }
         });
 
@@ -1282,88 +1257,6 @@ Return top 5 findings with source URLs.</code></pre></div>
             });
         });
 
-        // ===== Email Gate =====
-        function getSavedEmail() {
-            return localStorage.getItem('gate-email-' + COURSE_SLUG) || '';
-        }
-
-        function isChecklistUnlocked() {
-            return !!getSavedEmail();
-        }
-
-        function loadGatedSection(email) {
-            var placeholder = document.getElementById('section-' + TOTAL);
-            if (!placeholder) return Promise.resolve(true);
-            if (placeholder.innerHTML.trim()) return Promise.resolve(true);
-
-            return fetch('/api/checklist?email=' + encodeURIComponent(email))
-                .then(function(r) {
-                    if (!r.ok) throw new Error('not a subscriber');
-                    return r.text();
-                })
-                .then(function(html) {
-                    placeholder.outerHTML = html;
-                    sections = document.querySelectorAll('.course-section');
-                    localStorage.setItem('gate-email-' + COURSE_SLUG, email);
-                    var lock = document.querySelector('.toc-lock');
-                    if (lock) lock.remove();
-                    return true;
-                })
-                .catch(function() {
-                    localStorage.removeItem('gate-email-' + COURSE_SLUG);
-                    showEmailGate();
-                    var msg = document.getElementById('gateError');
-                    if (msg) { msg.style.display = 'block'; msg.textContent = 'Email not found. Please sign up first.'; }
-                    return false;
-                });
-        }
-
-        // Verify form submit
-        var verifyBtn = document.getElementById('verifyBtn');
-        var verifyEmail = document.getElementById('verifyEmail');
-        if (verifyBtn) {
-            verifyBtn.addEventListener('click', function() {
-                var email = verifyEmail.value.trim();
-                if (!email) return;
-                verifyBtn.textContent = 'Checking...';
-                verifyBtn.disabled = true;
-                loadGatedSection(email).then(function(ok) {
-                    verifyBtn.textContent = 'Access Checklist';
-                    verifyBtn.disabled = false;
-                    if (ok) {
-                        emailGate.classList.remove('visible');
-                        goTo(TOTAL);
-                    }
-                });
-            });
-            verifyEmail.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') verifyBtn.click();
-            });
-        }
-
-        // Toggle between signup and verify forms
-        var alreadySignedUp = document.getElementById('alreadySignedUp');
-        var signupView = document.getElementById('signupView');
-        var verifyView = document.getElementById('verifyView');
-        var showSignupBtn = document.getElementById('showSignup');
-        if (alreadySignedUp) {
-            alreadySignedUp.addEventListener('click', function() {
-                signupView.style.display = 'none';
-                verifyView.style.display = 'block';
-                verifyEmail.focus();
-            });
-        }
-        if (showSignupBtn) {
-            showSignupBtn.addEventListener('click', function() {
-                verifyView.style.display = 'none';
-                signupView.style.display = 'block';
-            });
-        }
-
-        emailSkip.addEventListener('click', function() {
-            emailGate.classList.remove('visible');
-        });
-
         // ===== Share =====
         document.addEventListener('click', function(e) {
             var btn = e.target.closest('.share-btn');
@@ -1390,49 +1283,8 @@ Return top 5 findings with source URLs.</code></pre></div>
             if (shareUrl) window.open(shareUrl, '_blank', 'width=600,height=400');
         });
 
-        // ===== Flodesk Form Init =====
-        var FLODESK_FORM_ID = '69d6259bc420cb9799758009';
-        var flodeskInitialized = false;
-
-        function initFlodeskForm() {
-            if (flodeskInitialized || !FLODESK_FORM_ID) return;
-            // Wait for fd to be ready, then init
-            var attempts = 0;
-            var tryInit = function() {
-                if (window.fd) {
-                    window.fd('form', {
-                        formId: FLODESK_FORM_ID,
-                        containerEl: '#fd-form-' + FLODESK_FORM_ID
-                    });
-                    flodeskInitialized = true;
-                } else if (attempts < 20) {
-                    attempts++;
-                    setTimeout(tryInit, 250);
-                }
-            };
-            tryInit();
-        }
-
         // ===== Init =====
         initTheme();
-
-        // Remove lock icon if already unlocked
-        if (isChecklistUnlocked()) {
-            var lock = document.querySelector('.toc-lock');
-            if (lock) lock.remove();
-        }
-
-        // Handle Flodesk redirect: ?gate=unlocked → show verify input
-        var gateRedirect = false;
-        var params = new URLSearchParams(window.location.search);
-        if (params.get('gate') === 'unlocked' && EMAIL_GATE_ENABLED) {
-            gateRedirect = true;
-            history.replaceState(null, '', window.location.pathname);
-            showEmailGate();
-            if (signupView) signupView.style.display = 'none';
-            if (verifyView) verifyView.style.display = 'block';
-            if (verifyEmail) verifyEmail.focus();
-        }
 
         // Parse hash on load
         var hash = window.location.hash;
@@ -1441,8 +1293,6 @@ Return top 5 findings with source URLs.</code></pre></div>
             var parsed = parseInt(hash.replace('#section-', ''));
             if (parsed >= 1 && parsed <= TOTAL) startSection = parsed;
         }
-        // Don't navigate to gated section on redirect — stay on last visible section
-        if (gateRedirect || startSection === TOTAL) startSection = TOTAL - 1;
         goTo(startSection);
     })();
     </script>
